@@ -9,6 +9,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Toast;
 
+import com.droidlove.ocrclickboard.ocr_reader.OcrCaptureActivity;
+
 public class MainActivity extends AppCompatActivity {
 
     private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
@@ -43,6 +45,18 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 startService(new Intent(MainActivity.this, FloatingViewService.class));
                 finish();
+            }
+        });
+
+        findViewById(R.id.detect_text).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, OcrCaptureActivity.class);
+                intent.putExtra(OcrCaptureActivity.AutoFocus, true);
+//                intent.putExtra(OcrCaptureActivity.UseFlash, useFlash.isChecked());
+
+//                startActivityForResult(intent, RC_OCR_CAPTURE);
+                startActivity(intent);
             }
         });
     }
