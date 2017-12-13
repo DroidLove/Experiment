@@ -26,13 +26,16 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".ocr_reader.OcrCaptureActivity"
-            android:label="Read Text"/>
+        <activity
+            android:name=".ocr_reader.OcrCaptureActivity"
+            android:label="Read Text" />
 
         <service
             android:name=".FloatingViewService"
             android:enabled="true"
             android:exported="false" />
+
+        <service android:name=".service.MyBindService" />
     </application>
 
 </manifest>

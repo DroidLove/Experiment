@@ -59,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.detect_text).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 Intent intent = new Intent(MainActivity.this, OcrCaptureActivity.class);
                 intent.putExtra(OcrCaptureActivity.AutoFocus, true);
 //                intent.putExtra(OcrCaptureActivity.UseFlash, useFlash.isChecked());

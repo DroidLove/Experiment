@@ -3,6 +3,7 @@ package com.droidlove.ocrclickboard;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
+import android.os.Binder;
 import android.os.IBinder;
 import android.view.Gravity;
 import android.view.LayoutInflater;
@@ -10,18 +11,28 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 public class FloatingViewService extends Service {
 
     private WindowManager mWindowManager;
     private View mFloatingView;
+    private final IBinder mBinder = new FloatingViewService.LocalBinder();
+    private TextView textview_clipboard_result;
 
     public FloatingViewService() {
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
+    }
+
+    //returns the instance of the service
+    public class LocalBinder extends Binder {
+        public FloatingViewService getServiceInstance() {
+            return FloatingViewService.this;
+        }
     }
 
     @Override
@@ -50,8 +61,9 @@ public class FloatingViewService extends Service {
         //The root element of the collapsed view layout
         final View collapsedView = mFloatingView.findViewById(R.id.collapse_view);
         //The root element of the expanded view layout
-//        final View expandedView = mFloatingView.findViewById(R.id.expanded_container);
+        final View expandedView = mFloatingView.findViewById(R.id.expanded_container);
 
+        textview_clipboard_result = mFloatingView.findViewById(R.id.textview_clipboard_result);
 
         //Set the close button
         ImageView closeButtonCollapsed = (ImageView) mFloatingView.findViewById(R.id.close_btn);
@@ -90,16 +102,16 @@ public class FloatingViewService extends Service {
 //                Toast.makeText(FloatingViewService.this, "Playing previous song.", Toast.LENGTH_LONG).show();
 //            }
 //        });
-//
-//        //Set the close button
-//        ImageView closeButton = (ImageView) mFloatingView.findViewById(R.id.close_button);
-//        closeButton.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                collapsedView.setVisibility(View.VISIBLE);
-//                expandedView.setVisibility(View.GONE);
-//            }
-//        });
+
+        //Set the close button
+        ImageView closeButton = (ImageView) mFloatingView.findViewById(R.id.close_button);
+        closeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                collapsedView.setVisibility(View.VISIBLE);
+                expandedView.setVisibility(View.GONE);
+            }
+        });
 
         //Open the application on thi button click
 //        ImageView openButton = (ImageView) mFloatingView.findViewById(R.id.open_button);
@@ -148,7 +160,7 @@ public class FloatingViewService extends Service {
                                 //visibility of the collapsed layout will be changed to "View.GONE"
                                 //and expanded view will become visible.
                                 collapsedView.setVisibility(View.GONE);
-//                                expandedView.setVisibility(View.VISIBLE);
+                                expandedView.setVisibility(View.VISIBLE);
                             }
                         }
                         return true;
@@ -173,6 +185,10 @@ public class FloatingViewService extends Service {
      */
     private boolean isViewCollapsed() {
         return mFloatingView == null || mFloatingView.findViewById(R.id.collapse_view).getVisibility() == View.VISIBLE;
+    }
+
+    public void updateClipboard(String ocrResult) {
+        textview_clipboard_result.setText(ocrResult);
     }
 
     @Override
