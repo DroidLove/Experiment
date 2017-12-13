@@ -6,19 +6,27 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.droidlove.ocrclickboard.ocr_reader.OcrCaptureActivity;
+import com.google.android.gms.common.api.CommonStatusCodes;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final String TAG = "MainActivity";
     private static final int CODE_DRAW_OVER_OTHER_APP_PERMISSION = 2084;
+    private static final int RC_OCR_CAPTURE = 9003;
+    TextView textview_ocr_result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        textview_ocr_result = (TextView) findViewById(R.id.textview_ocr_result);
 
         //Check if the application has draw over other apps permission or not?
         //This permission is by default available for API<23. But for API > 23
@@ -55,8 +63,8 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra(OcrCaptureActivity.AutoFocus, true);
 //                intent.putExtra(OcrCaptureActivity.UseFlash, useFlash.isChecked());
 
-//                startActivityForResult(intent, RC_OCR_CAPTURE);
-                startActivity(intent);
+                startActivityForResult(intent, RC_OCR_CAPTURE);
+//                startActivity(intent);
             }
         });
     }
@@ -74,6 +82,21 @@ public class MainActivity extends AppCompatActivity {
                         Toast.LENGTH_SHORT).show();
 
                 finish();
+            }
+        } else if (requestCode == RC_OCR_CAPTURE) {
+            if (resultCode == CommonStatusCodes.SUCCESS) {
+                if (data != null) {
+                    String text = data.getStringExtra(OcrCaptureActivity.TextBlockObject);
+//                    statusMessage.setText(R.string.ocr_success);
+                    textview_ocr_result.setText(text);
+                    Log.d(TAG, "Text read: " + text);
+                } else {
+                    textview_ocr_result.setText(R.string.ocr_failure);
+                    Log.d(TAG, "No Text captured, intent data is null");
+                }
+            } else {
+                textview_ocr_result.setText(String.format(getString(R.string.ocr_error),
+                        CommonStatusCodes.getStatusCodeString(resultCode)));
             }
         } else {
             super.onActivityResult(requestCode, resultCode, data);
