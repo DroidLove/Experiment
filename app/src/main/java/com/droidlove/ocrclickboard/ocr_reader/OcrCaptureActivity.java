@@ -237,6 +237,7 @@ public final class OcrCaptureActivity extends AppCompatActivity {
         if (mPreview != null) {
             mPreview.release();
         }
+        stopService(new Intent(this, FloatingViewService.class));
     }
 
     /**

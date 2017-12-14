@@ -5,20 +5,26 @@ import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
-import android.widget.TextView;
+
+import java.util.ArrayList;
 
 public class FloatingViewService extends Service {
 
     private WindowManager mWindowManager;
     private View mFloatingView;
     private final IBinder mBinder = new FloatingViewService.LocalBinder();
-    private TextView textview_clipboard_result;
+    //    private TextView textview_clipboard_result;
+    private RecyclerView recycler_clipboard_result;
+    ClipboardListingAdapter clipboardListingAdapter;
+    private ArrayList<String> mArrayClipBoard;
 
     public FloatingViewService() {
     }
@@ -63,7 +69,14 @@ public class FloatingViewService extends Service {
         //The root element of the expanded view layout
         final View expandedView = mFloatingView.findViewById(R.id.expanded_container);
 
-        textview_clipboard_result = mFloatingView.findViewById(R.id.textview_clipboard_result);
+        mArrayClipBoard = new ArrayList<>();
+        recycler_clipboard_result = mFloatingView.findViewById(R.id.recycler_clipboard_result);
+
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        clipboardListingAdapter = new ClipboardListingAdapter(this, mArrayClipBoard);
+
+        recycler_clipboard_result.setLayoutManager(linearLayoutManager);
+        recycler_clipboard_result.setAdapter(clipboardListingAdapter);
 
         //Set the close button
         ImageView closeButtonCollapsed = (ImageView) mFloatingView.findViewById(R.id.close_btn);
@@ -176,6 +189,67 @@ public class FloatingViewService extends Service {
                 return false;
             }
         });
+
+        mFloatingView.findViewById(R.id.recycler_clipboard_result).setOnTouchListener(new View.OnTouchListener() {
+            private int initialX;
+            private int initialY;
+            private float initialTouchX;
+            private float initialTouchY;
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+
+                        //remember the initial position.
+                        initialX = params.x;
+                        initialY = params.y;
+
+                        //get the touch location
+                        initialTouchX = event.getRawX();
+                        initialTouchY = event.getRawY();
+                        return true;
+                    case MotionEvent.ACTION_UP:
+                        int Xdiff = (int) (event.getRawX() - initialTouchX);
+                        int Ydiff = (int) (event.getRawY() - initialTouchY);
+
+                        //The check for Xdiff <10 && YDiff< 10 because sometime elements moves a little while clicking.
+                        //So that is click event.
+                        if (Xdiff < 10 && Ydiff < 10) {
+                            if (isViewCollapsed()) {
+                                //When user clicks on the image view of the collapsed layout,
+                                //visibility of the collapsed layout will be changed to "View.GONE"
+                                //and expanded view will become visible.
+                                collapsedView.setVisibility(View.GONE);
+                                expandedView.setVisibility(View.VISIBLE);
+                            }
+                        }
+                        return true;
+                    case MotionEvent.ACTION_MOVE:
+                        //Calculate the X and Y coordinates of the view.
+                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
+                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
+
+                        //Update the layout with new X & Y coordinate
+                        mWindowManager.updateViewLayout(mFloatingView, params);
+                        return true;
+                }
+                return false;
+            }
+        });
+
+//        textview_clipboard_result.setOnLongClickListener(new View.OnLongClickListener() {
+//            @Override
+//            public boolean onLongClick(View view) {
+//
+//                ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+//                ClipData clip = ClipData.newPlainText("", textview_clipboard_result.getText().toString());
+//                clipboard.setPrimaryClip(clip);
+//                Toast.makeText(FloatingViewService.this, "Text Copied", Toast.LENGTH_LONG).show();
+//
+//                return false;
+//            }
+//        });
     }
 
     /**
@@ -188,7 +262,9 @@ public class FloatingViewService extends Service {
     }
 
     public void updateClipboard(String ocrResult) {
-        textview_clipboard_result.setText(ocrResult);
+        mArrayClipBoard.add(ocrResult);
+        clipboardListingAdapter.updateListing(mArrayClipBoard);
+//        textview_clipboard_result.setText(ocrResult);
     }
 
     @Override
